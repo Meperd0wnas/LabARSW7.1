@@ -40,8 +40,7 @@
                 <th>Acción</th>
             </tr>
         </thead>
-        <tbody>
-        </tbody>
+        <tbody></tbody>
     </table>
 
     <!-- Canvas para dibujar -->
@@ -67,7 +66,7 @@
 
 <script>
 $(document).ready(function() {
-    // Toggle backend
+    // Cambiar backend
     $('#btn-backend-mock').click(() => {
         BlueprintsModule.setBackend(BlueprintsMockModule);
         alert("Backend cambiado a MOCK");
@@ -77,7 +76,7 @@ $(document).ready(function() {
         alert("Backend cambiado a API real");
     });
 
-    // Botón Get Blueprints
+    // Obtener planos
     $('#btn-get-blueprints').click(function() {
         const author = $('#input-author').val();
         if (!author) {
@@ -86,7 +85,11 @@ $(document).ready(function() {
         }
         BlueprintsModule.updateBlueprintsByAuthor(author);
     });
+
+    // Iniciar manejadores del canvas
+    BlueprintsModule.initCanvasEvents();
 });
 </script>
 </body>
 </html>
+

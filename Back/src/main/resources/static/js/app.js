@@ -3,16 +3,17 @@ const BlueprintsModule = (function() {
     // Backend activo (puede cambiarse dinámicamente)
     let Backend = BlueprintsMockModule;  // Inicialmente Mock
 
-    // Estado privado
+    // Estado interno
     let selectedAuthor = '';
     let blueprints = [];
+    let currentBlueprint = null;
 
     // Cambiar backend
     function setBackend(newBackend) {
         Backend = newBackend;
     }
 
-    // Actualizar tabla desde lista transformada
+    // Actualizar tabla
     function updateViewFromList(transformedList) {
         const tbody = $('#blueprints-table tbody');
         tbody.empty();
@@ -34,32 +35,23 @@ const BlueprintsModule = (function() {
         $('#total-points').text(totalPoints);
     }
 
-    // Dibujar plano en canvas
+    // Dibujar plano
     function drawBlueprint(author, planName) {
-        if (!Backend.getBlueprintsByAuthor) {
-            console.error('El backend no tiene getBlueprintsByAuthor');
-            return;
-        }
-
         Backend.getBlueprintsByAuthor(author, function(list) {
             const blueprint = list.find(bp => bp.name === planName);
             if (!blueprint || !blueprint.points) return;
 
-            // Campo plano actual
-            let planField = $('#current-plan');
-            if (planField.length === 0) {
-                $('<div class="mb-3"><strong>Plano dibujado: </strong><span id="current-plan"></span></div>')
-                    .insertBefore('#blueprints-canvas');
-                planField = $('#current-plan');
-            }
-            planField.text(blueprint.name);
+            currentBlueprint = blueprint;
 
-            // Canvas
+            // Mostrar nombre del plano actual
+            $('#current-plan').remove();
+            $('<div id="current-plan" class="mb-3"><strong>Plano dibujado: </strong>' + blueprint.name + '</div>')
+                .insertBefore('#blueprints-canvas');
+
             const canvas = document.getElementById('blueprints-canvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Dibujar líneas entre puntos
             ctx.beginPath();
             const points = blueprint.points;
             ctx.moveTo(points[0].x, points[0].y);
@@ -72,12 +64,32 @@ const BlueprintsModule = (function() {
         });
     }
 
+    // Capturar clics en el canvas
+    function initCanvasEvents() {
+        const canvas = document.getElementById('blueprints-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.addEventListener('pointerdown', function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            console.log(`Click detectado en: (${x.toFixed(1)}, ${y.toFixed(1)})`);
+
+            // Dibujar punto azul donde se hizo clic
+            ctx.fillStyle = 'blue';
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+    }
+
     // Cambiar autor
     function setAuthor(author) {
         selectedAuthor = author.trim();
     }
 
-    // Actualizar listado de planos
+    // Actualizar planos por autor
     function updateBlueprintsByAuthor(author) {
         selectedAuthor = author.trim();
         Backend.getBlueprintsByAuthor(selectedAuthor, function(list) {
@@ -90,7 +102,6 @@ const BlueprintsModule = (function() {
         });
     }
 
-    // Obtener planos actuales
     function getBlueprints() {
         return blueprints;
     }
@@ -100,6 +111,7 @@ const BlueprintsModule = (function() {
         updateBlueprintsByAuthor,
         drawBlueprint,
         getBlueprints,
-        setBackend
+        setBackend,
+        initCanvasEvents
     };
 })();
