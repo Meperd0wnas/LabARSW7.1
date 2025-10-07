@@ -1,50 +1,75 @@
 const BlueprintsMockModule = (function() {
-    let selectedAuthor = '';
-    let blueprints = [];
-
     const mockData = {
         "daniel": [
-            { name: "casa1", points: [{x:0,y:0},{x:10,y:10},{x:5,y:5}] },
-            {
-                name: "casa2",
-                points: [
-                    {x:50, y:150},  // esquina inferior izquierda
-                    {x:50, y:80},   // esquina superior izquierda
-                    {x:150, y:80},  // esquina superior derecha
-                    {x:150, y:150}, // esquina inferior derecha
-                    {x:50, y:150},  // cerrar base del rectángulo
-
-                    // Techo
-                    {x:50, y:80},   // esquina superior izquierda del rectángulo
-                    {x:100, y:30},  // punto central del techo (pico)
-                    {x:150, y:80},  // esquina superior derecha del rectángulo
-                ]
-            },
-            { name: "casa3", points: [{x:1,y:1},{x:2,y:2}] }
+            { author: "daniel", name: "casa1", points: [{x:0,y:0},{x:10,y:10},{x:5,y:5}] },
+            { author: "daniel", name: "casa2", points: [{x:50,y:80},{x:150,y:80},{x:100,y:30}] }
         ],
         "maria": [
-            { name: "jardin", points: [{x:20,y:20},{x:30,y:30}] },
-            { name: "terraza", points: [{x:0,y:0},{x:1,y:1},{x:2,y:2},{x:3,y:3}] }
-        ],
-        "carlos": [
-            { name: "edificio", points: [{x:40,y:40},{x:50,y:50},{x:60,y:60}] },
-            { name: "garaje", points: [{x:10,y:10}] }
+            { author: "maria", name: "jardin", points: [{x:20,y:20},{x:30,y:30}] }
         ]
     };
 
+    // Promise: GET /blueprints/{author}
+    function getBlueprintsByAuthorPromise(author) {
+        return new Promise((resolve) => {
+            const key = (author || '').toLowerCase();
+            const list = (mockData[key] || []).map(bp => ({ author: bp.author, name: bp.name, points: bp.points.slice() }));
+            setTimeout(() => resolve(list), 60);
+        });
+    }
     function getBlueprintsByAuthor(author, callback) {
-        const list = mockData[author.toLowerCase()] || [];
-        callback(list);
+        getBlueprintsByAuthorPromise(author).then(callback);
     }
 
-    function getBlueprintsByNameAndAuthor(author, planName, callback) {
-        const list = mockData[author.toLowerCase()] || [];
-        const blueprint = list.find(bp => bp.name === planName);
-        callback(blueprint || null);
+    // Promise: GET /blueprints (todos)
+    function getAllBlueprintsPromise() {
+        return new Promise((resolve) => {
+            const all = [];
+            Object.keys(mockData).forEach(k => {
+                mockData[k].forEach(bp => all.push({ author: bp.author, name: bp.name, points: bp.points.slice() }));
+            });
+            setTimeout(() => resolve(all), 60);
+        });
+    }
+
+    // POST /blueprints -> create new blueprint
+    // recibe blueprint { author, name, points }
+    function postBlueprint(blueprint) {
+        return new Promise((resolve, reject) => {
+            if (!blueprint || !blueprint.author || !blueprint.name) {
+                return reject({ message: 'Falta author o name' });
+            }
+            const key = (blueprint.author || '').toLowerCase();
+            if (!mockData[key]) mockData[key] = [];
+            const exists = mockData[key].some(bp => bp.name === blueprint.name);
+            if (exists) {
+                // simular conflict / forbiden
+                return reject({ message: 'Blueprint ya existe' });
+            } else {
+                mockData[key].push({ author: blueprint.author, name: blueprint.name, points: (blueprint.points || []).slice() });
+                setTimeout(() => resolve({ success: true }), 120);
+            }
+        });
+    }
+
+    // PUT /blueprints/{author}/{name} (ya lo tenías)
+    function putBlueprint(author, blueprint) {
+        return new Promise((resolve) => {
+            const key = (author || '').toLowerCase();
+            if (!mockData[key]) mockData[key] = [];
+            const idx = mockData[key].findIndex(b => b.name === blueprint.name);
+            const stored = { author: blueprint.author || author, name: blueprint.name, points: (blueprint.points || []).slice() };
+            if (idx >= 0) mockData[key][idx] = stored;
+            else mockData[key].push(stored);
+            setTimeout(() => resolve({ success: true }), 120);
+        });
     }
 
     return {
         getBlueprintsByAuthor,
-        getBlueprintsByNameAndAuthor
+        getBlueprintsByAuthorPromise,
+        getAllBlueprintsPromise,
+        postBlueprint,
+        putBlueprint
     };
 })();

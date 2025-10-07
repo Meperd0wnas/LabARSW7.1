@@ -22,3 +22,21 @@ antes:
 despues:
 
 ![alt text](./Back/img/media/image3.png)
+
+
+#### 3
+
+Se modificó el cliente para que al oprimir el botón “Save/Update” se realice primero una petición PUT al API REST con el plano actualizado, y luego una petición GET para obtener todos los planos del autor y recalcular el total de puntos. Además, se ajustó la actualización de la tabla de planos para reflejar correctamente la lista de puntos y el total de puntos por autor, asegurando que la vista se sincronice con los datos del backend.
+
+![alt text](./Back/img/media/image4.png)
+
+
+#### 4
+
+Se añadió el botón Crear nuevo blueprint y la lógica asociada: al pulsarlo se limpia el canvas y se pide el nombre del nuevo plano; ese nuevo plano queda abierto en memoria como “nuevo” y al oprimir Guardar/Actualizar se hace POST /blueprints (si es nuevo) o PUT /blueprints/{author}/{name} (si ya existía), encadenando promesas para luego ejecutar un GET /blueprints (recalcular total de puntos) y un GET /blueprints/{author} para refrescar la tabla y la vista; además el módulo mantiene los arrays de puntos completos para dibujar y permite alternar entre mock y API real.
+
+![alt text](./Back/img/media/image5.png)
+
+![alt text](./Back/img/media/image6.png)
+
+![alt text](./Back/img/media/image7.png)

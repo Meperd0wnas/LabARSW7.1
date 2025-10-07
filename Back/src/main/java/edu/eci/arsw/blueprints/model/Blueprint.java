@@ -47,6 +47,11 @@ public class Blueprint {
         this.points.add(p);
     }
 
+    public void setPoints(List<Point> points) {
+    this.points = points;
+    }
+
+
     @Override
     public String toString() {
         return "Blueprint{" + "author=" + author + ", name=" + name + '}';
@@ -86,6 +91,16 @@ public class Blueprint {
         }
         
         return true;
+    }
+
+    public void setAuthor(String author2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setAuthor'");
+    }
+
+    public void setName(String name2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setName'");
     }
     
     

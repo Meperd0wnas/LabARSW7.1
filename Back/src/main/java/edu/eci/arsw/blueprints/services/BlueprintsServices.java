@@ -45,9 +45,22 @@ public class BlueprintsServices {
                   .collect(Collectors.toSet());
     }
 
-        public void updateBlueprint(String author, String name, Blueprint nuevo) throws BlueprintNotFoundException {
-        bpp.updateBlueprint(author, name, nuevo);
+    public void updateBlueprint(String author, String bpName, Blueprint updatedBp) throws BlueprintNotFoundException {
+    
+        if (updatedBp.getAuthor() == null || updatedBp.getAuthor().isEmpty()) {
+            updatedBp.setAuthor(author);
+        }
+        if (updatedBp.getName() == null || updatedBp.getName().isEmpty()) {
+            updatedBp.setName(bpName);
+        }
+
+        // Delegar a persistencia
+        bpp.updateBlueprint(author, bpName, updatedBp); // tu objeto persistence debe ser inyectado
     }
+
+
+
+    
 
 }
 

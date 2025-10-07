@@ -70,6 +70,23 @@ public class BlueprintAPIController {
         }
     }    
 
+    // PUT - actualizar plano existente
+    @PutMapping("/{author}/{bpname}")
+    public ResponseEntity<?> updateBlueprint(
+            @PathVariable("author") String author,
+            @PathVariable("bpname") String bpname,
+            @RequestBody Blueprint blueprint) {
+        try {
+            // Llamada al servicio que debe actualizar el plano
+            services.updateBlueprint(author, bpname, blueprint);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception ex) {
+            Logger.getLogger(BlueprintAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("Error al actualizar el plano", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 
 }
 

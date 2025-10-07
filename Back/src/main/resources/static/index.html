@@ -1,63 +1,63 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blueprints</title>
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/webjars/bootstrap/5.1.3/css/bootstrap.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blueprints</title>
+  <link rel="stylesheet" href="/webjars/bootstrap/5.1.3/css/bootstrap.min.css">
 </head>
 <body>
 <div class="container mt-5">
-    <h1 class="mb-4">Blueprints Application</h1>
+  <h1 class="mb-4">Blueprints Application</h1>
 
-    <!-- Captura de autor -->
-    <div class="mb-3">
-        <label for="input-author" class="form-label">Autor:</label>
-        <input type="text" id="input-author" class="form-control" placeholder="Ingrese nombre del autor">
-    </div>
+  <!-- Captura de autor -->
+  <div class="mb-3">
+    <label for="input-author" class="form-label">Autor:</label>
+    <input type="text" id="input-author" class="form-control" placeholder="Ingrese nombre del autor">
+  </div>
 
     <!-- Botones Get Blueprints y cambio de backend -->
-    <div class="mb-3">
-        <button id="btn-get-blueprints" class="btn btn-primary">Get blueprints</button>
-        <button id="btn-backend-mock" class="btn btn-secondary btn-sm">Usar Mock</button>
-        <button id="btn-backend-api" class="btn btn-secondary btn-sm">Usar API Real</button>
-    </div>
+  <div class="mb-3">
+    <button id="btn-get-blueprints" class="btn btn-primary">Get blueprints</button>
+    <button id="btn-backend-mock" class="btn btn-secondary btn-sm">Usar Mock</button>
+    <button id="btn-backend-api" class="btn btn-secondary btn-sm">Usar API Real</button>
+    <button id="btn-create-blueprint" class="btn btn-info btn-sm">Crear nuevo blueprint</button>
+  </div>
 
-    <!-- Campo autor seleccionado -->
-    <div class="mb-3">
-        <strong>Autor seleccionado: </strong>
-        <span id="selected-author">-</span>
-    </div>
 
-    <!-- Tabla de planos -->
-    <table id="blueprints-table" class="table table-bordered">
-        <thead class="table-light">
-            <tr>
-                <th>Nombre del Plano</th>
-                <th>Número de Puntos</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+  <!-- Campo autor seleccionado -->
+  <div class="mb-3">
+    <strong>Autor seleccionado: </strong>
+    <span id="selected-author">-</span>
+  </div>
 
-    <!-- Canvas para dibujar -->
-    <div class="mb-3">
-        <canvas id="blueprints-canvas" width="400" height="400" style="border:1px solid #000;"></canvas>
-    </div>
+  <!-- Tabla de planos -->
+  <table id="blueprints-table" class="table table-bordered">
+    <thead class="table-light">
+      <tr>
+        <th>Nombre del Plano</th>
+        <th>Número de Puntos</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    <!-- Botón Guardar/Actualizar -->
-    <div class="mb-3">
-        <button id="btn-save-blueprint" class="btn btn-warning">Guardar / Actualizar plano</button>
-    </div>
+  <!-- Canvas para dibujar -->
+  <div class="mb-3">
+    <canvas id="blueprints-canvas" width="500" height="400" style="border:1px solid #000;"></canvas>
+  </div>
 
-    <!-- Total de puntos -->
-    <div class="mt-3">
-        <strong>Total de puntos: </strong>
-        <span id="total-points">0</span>
-    </div>
+  <!-- Botón Guardar/Actualizar -->
+  <div class="mb-3">
+    <button id="btn-save-blueprint" class="btn btn-warning">Guardar / Actualizar plano</button>
+  </div>
+
+  <!-- Total de puntos -->
+  <div class="mt-3">
+    <strong>Total de puntos del autor: </strong>
+    <span id="total-points">0</span>
+  </div>
 </div>
 
 <!-- jQuery y Bootstrap -->
@@ -71,33 +71,38 @@
 
 <script>
 $(document).ready(function() {
-    $('#btn-backend-mock').click(() => {
-        BlueprintsModule.setBackendToMock();
-        alert("Backend cambiado a MOCK");
-    });
+  // Switch backend
+  $('#btn-backend-mock').click(() => {
+    BlueprintsModule.setBackendToMock();
+    alert("Backend cambiado a MOCK");
+  });
+  $('#btn-backend-api').click(() => {
+    BlueprintsModule.setBackendToApi();
+    alert("Backend cambiado a API real");
+  });
 
-    $('#btn-backend-api').click(() => {
-        BlueprintsModule.setBackendToApi();
-        alert("Backend cambiado a API real");
-    });
+  // Get blueprints by author (fills table)
+  $('#btn-get-blueprints').click(() => {
+    const author = $('#input-author').val().trim();
+    if (!author) { alert('Por favor ingrese un autor'); return; }
+    BlueprintsModule.setAuthor(author);
+    BlueprintsModule.updateBlueprintsByAuthor(author)
+      .catch(err => console.error('Error al actualizar planos:', err));
+  });
 
-    $('#btn-get-blueprints').click(() => {
-        const author = $('#input-author').val().trim();
-        if (!author) {
-            alert("Ingrese un autor");
-            return;
-        }
-        BlueprintsModule.setAuthor(author);
-        BlueprintsModule.updateBlueprintsByAuthor(author);
-    });
+  // Save / Update
+  $('#btn-save-blueprint').click(() => {
+    BlueprintsModule.saveOrUpdateBlueprint()
+      .catch(err => console.error('Error en guardar/actualizar:', err));
+  });
 
-    $('#btn-save-blueprint').click(() => {
-        BlueprintsModule.saveOrUpdateBlueprint();
-    });
+  $('#btn-create-blueprint').click(() => {
+    BlueprintsModule.createNewBlueprint();
+  });
 
-    BlueprintsModule.initCanvasEvents();
+  // Start canvas handlers
+  BlueprintsModule.initCanvasEvents();
 });
 </script>
-
 </body>
 </html>
