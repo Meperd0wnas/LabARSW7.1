@@ -71,35 +71,33 @@
 
 <script>
 $(document).ready(function() {
-    // Cambiar backend: ahora llamamos a métodos del módulo (más robusto)
     $('#btn-backend-mock').click(() => {
         BlueprintsModule.setBackendToMock();
         alert("Backend cambiado a MOCK");
     });
+
     $('#btn-backend-api').click(() => {
         BlueprintsModule.setBackendToApi();
         alert("Backend cambiado a API real");
     });
 
-    // Obtener planos
-    $('#btn-get-blueprints').click(function() {
+    $('#btn-get-blueprints').click(() => {
         const author = $('#input-author').val().trim();
         if (!author) {
-            alert('Por favor ingrese un autor');
+            alert("Ingrese un autor");
             return;
         }
         BlueprintsModule.setAuthor(author);
         BlueprintsModule.updateBlueprintsByAuthor(author);
     });
 
-    // Guardar plano
-    $('#btn-save-blueprint').click(function() {
+    $('#btn-save-blueprint').click(() => {
         BlueprintsModule.saveOrUpdateBlueprint();
     });
 
-    // Iniciar manejadores del canvas
     BlueprintsModule.initCanvasEvents();
 });
 </script>
+
 </body>
 </html>

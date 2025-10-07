@@ -1,22 +1,33 @@
 const BlueprintsModule = (function() {
 
-    let Backend = BlueprintsMockModule; // Cambiable a BlueprintsApiClient
+    let Backend = BlueprintsMockModule;
     let selectedAuthor = '';
     let blueprints = [];
-    let currentBlueprint = null; // 🔹 nuevo: plano actualmente dibujado
+    let currentBlueprint = null;
 
-    function setBackend(newBackend) {
-        Backend = newBackend;
+    function setBackendToMock() {
+        Backend = BlueprintsMockModule;
+        console.log("Backend cambiado a MOCK");
     }
 
-    function updateViewFromList(transformedList) {
+    function setBackendToApi() {
+        Backend = BlueprintsApiClient;
+        console.log("Backend cambiado a API real");
+    }
+
+    function setAuthor(author) {
+        selectedAuthor = author.trim();
+        $('#selected-author').text(selectedAuthor);
+    }
+
+    function updateViewFromList(list) {
         const tbody = $('#blueprints-table tbody');
         tbody.empty();
 
-        transformedList.forEach(bp => {
+        list.forEach(bp => {
             const row = $('<tr></tr>');
             row.append(`<td>${bp.name}</td>`);
-            row.append(`<td>${bp.points}</td>`);
+            row.append(`<td>${bp.points.length}</td>`);
 
             const btn = $('<button class="btn btn-success btn-sm">Dibujar</button>');
             btn.click(() => drawBlueprint(selectedAuthor, bp.name));
@@ -25,33 +36,32 @@ const BlueprintsModule = (function() {
             tbody.append(row);
         });
 
-        const totalPoints = transformedList.reduce((sum, bp) => sum + bp.points, 0);
+        const totalPoints = list.reduce((sum, bp) => sum + bp.points.length, 0);
         $('#total-points').text(totalPoints);
     }
 
-    // 🔹 Dibujar plano en canvas
-    function drawBlueprint(author, planName) {
-        if (!Backend.getBlueprintsByAuthor) return;
+    function updateBlueprintsByAuthor(author) {
+        Backend.getBlueprintsByAuthor(author, function(list) {
+            blueprints = list;
+            updateViewFromList(list);
+        });
+    }
 
+    function drawBlueprint(author, planName) {
         Backend.getBlueprintsByAuthor(author, function(list) {
             const blueprint = list.find(bp => bp.name === planName);
-            if (!blueprint || !blueprint.points) return;
+            if (!blueprint) return;
 
-            currentBlueprint = blueprint; // 🔹 Guardamos el plano activo
+            currentBlueprint = blueprint;
 
-            let planField = $('#current-plan');
-            if (planField.length === 0) {
-                $('<div class="mb-3"><strong>Plano dibujado: </strong><span id="current-plan"></span></div>')
-                    .insertBefore('#blueprints-canvas');
-                planField = $('#current-plan');
-            }
-            planField.text(blueprint.name);
+            $('#current-plan').remove();
+            $('<div class="mb-3"><strong>Plano dibujado: </strong><span id="current-plan">'
+              + blueprint.name + '</span></div>').insertBefore('#blueprints-canvas');
 
             repaintCanvas();
         });
     }
 
-    // 🔹 Repinta el canvas con los puntos actuales
     function repaintCanvas() {
         if (!currentBlueprint) return;
 
@@ -72,52 +82,43 @@ const BlueprintsModule = (function() {
         ctx.stroke();
     }
 
-    // 🔹 Inicializa eventos del canvas
     function initCanvasEvents() {
         const canvas = document.getElementById('blueprints-canvas');
-        const ctx = canvas.getContext('2d');
-
         canvas.addEventListener('pointerdown', function(event) {
-            if (!currentBlueprint) return; // si no hay plano, no hacer nada
-
+            if (!currentBlueprint) return;
             const rect = canvas.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
-
-            // agregar punto al plano actual en memoria
-            currentBlueprint.points.push({ x, y });
-
-            // redibujar plano actualizado
+            currentBlueprint.points.push({x, y});
             repaintCanvas();
         });
     }
 
-    function setAuthor(author) {
-        selectedAuthor = author.trim();
-    }
+    // 🔹 Guardar o actualizar el plano actual
+    function saveOrUpdateBlueprint() {
+        if (!currentBlueprint || !selectedAuthor) {
+            alert("Debe seleccionar un autor y un plano antes de guardar.");
+            return;
+        }
 
-    function updateBlueprintsByAuthor(author) {
-        selectedAuthor = author.trim();
-        Backend.getBlueprintsByAuthor(selectedAuthor, function(list) {
-            const transformed = list.map(bp => ({
-                name: bp.name,
-                points: bp.points.length
-            }));
-            updateViewFromList(transformed);
-            blueprints = transformed;
-        });
-    }
-
-    function getBlueprints() {
-        return blueprints;
+        Backend.putBlueprint(selectedAuthor, currentBlueprint)
+            .then(() => {
+                alert("Plano guardado/actualizado correctamente.");
+                updateBlueprintsByAuthor(selectedAuthor);
+            })
+            .catch(err => {
+                console.error("Error al guardar el plano:", err);
+                alert("Error al guardar el plano.");
+            });
     }
 
     return {
+        setBackendToMock,
+        setBackendToApi,
         setAuthor,
         updateBlueprintsByAuthor,
         drawBlueprint,
-        getBlueprints,
-        setBackend,
-        initCanvasEvents // 🔹 nuevo: inicialización pública de eventos
+        initCanvasEvents,
+        saveOrUpdateBlueprint
     };
 })();
