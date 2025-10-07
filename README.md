@@ -40,3 +40,10 @@ Se añadió el botón Crear nuevo blueprint y la lógica asociada: al pulsarlo s
 ![alt text](./Back/img/media/image6.png)
 
 ![alt text](./Back/img/media/image7.png)
+
+
+#### 5
+
+Se agregó el botón DELETE y toda la lógica asociada: al pulsarlo se limpia el canvas, se ejecuta un DELETE /blueprints/{author}/{bpname} (tanto en el cliente real apiclient.js como en el apimock.js), y luego se encadenan promesas para hacer un GET actualizado de los planos del autor y refrescar la tabla y el total de puntos.
+
+![alt text](./Back/img/media/image8.png)

@@ -22,6 +22,7 @@
     <button id="btn-backend-mock" class="btn btn-secondary btn-sm">Usar Mock</button>
     <button id="btn-backend-api" class="btn btn-secondary btn-sm">Usar API Real</button>
     <button id="btn-create-blueprint" class="btn btn-info btn-sm">Crear nuevo blueprint</button>
+    <button id="btn-delete-blueprint" class="btn btn-danger btn-sm">DELETE</button>
   </div>
 
 
@@ -94,6 +95,13 @@ $(document).ready(function() {
   $('#btn-save-blueprint').click(() => {
     BlueprintsModule.saveOrUpdateBlueprint()
       .catch(err => console.error('Error en guardar/actualizar:', err));
+  });
+
+  // Delete
+  $('#btn-delete-blueprint').click(() => {
+      // Borra el blueprint actualmente abierto en canvas
+      BlueprintsModule.deleteCurrentBlueprint()
+        .catch(err => console.error('Error al eliminar blueprint:', err));
   });
 
   $('#btn-create-blueprint').click(() => {

@@ -49,11 +49,20 @@ const BlueprintsApiClient = (function() {
         });
     }
 
+    // DELETE /blueprints/{author}/{bpname}
+    function deleteBlueprint(author, bpname) {
+        return $.ajax({
+            url: `/blueprints/${encodeURIComponent(author)}/${encodeURIComponent(bpname)}`,
+            type: 'DELETE'
+        });
+    }
+
     return {
         getBlueprintsByAuthor,
         getBlueprintsByAuthorPromise,
         getAllBlueprintsPromise,
         putBlueprint,
-        postBlueprint
+        postBlueprint,
+        deleteBlueprint
     };
 })();

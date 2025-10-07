@@ -65,11 +65,29 @@ const BlueprintsMockModule = (function() {
         });
     }
 
+    function deleteBlueprint(author, name) {
+    return new Promise((resolve, reject) => {
+        const key = (author || '').toLowerCase();
+        if (!mockData[key]) {
+            // nada que eliminar
+            return resolve({ success: false, message: 'No existe autor' });
+        }
+        const idx = mockData[key].findIndex(b => b.name === name);
+        if (idx >= 0) {
+            mockData[key].splice(idx, 1);
+            setTimeout(() => resolve({ success: true }), 80);
+        } else {
+            setTimeout(() => resolve({ success: false, message: 'Blueprint no encontrado' }), 80);
+        }
+    });
+    }
+
     return {
         getBlueprintsByAuthor,
         getBlueprintsByAuthorPromise,
         getAllBlueprintsPromise,
         postBlueprint,
-        putBlueprint
+        putBlueprint,
+        deleteBlueprint 
     };
 })();
