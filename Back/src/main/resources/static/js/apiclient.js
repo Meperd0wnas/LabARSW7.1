@@ -58,10 +58,20 @@ const BlueprintsApiClient = (function() {
                 callback([]); // entregar lista vacía si falla
             });
     }
+        // Guardar o actualizar un plano existente (PUT)
+    function putBlueprint(author, blueprint) {
+        return $.ajax({
+            url: `/blueprints/${encodeURIComponent(author)}/${encodeURIComponent(blueprint.name)}`,
+            type: 'PUT',
+            data: JSON.stringify(blueprint),
+            contentType: "application/json"
+        });
+    }
 
     return {
         setAuthor,
         fetchBlueprints,
-        getBlueprintsByAuthor
+        getBlueprintsByAuthor,
+        putBlueprint
     };
 })();
