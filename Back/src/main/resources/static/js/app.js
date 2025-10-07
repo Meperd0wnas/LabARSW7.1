@@ -1,19 +1,14 @@
 const BlueprintsModule = (function() {
 
-    // Backend activo (puede cambiarse dinámicamente)
-    let Backend = BlueprintsMockModule;  // Inicialmente Mock
-
-    // Estado interno
+    let Backend = BlueprintsMockModule; // Cambiable a BlueprintsApiClient
     let selectedAuthor = '';
     let blueprints = [];
-    let currentBlueprint = null;
+    let currentBlueprint = null; // 🔹 nuevo: plano actualmente dibujado
 
-    // Cambiar backend
     function setBackend(newBackend) {
         Backend = newBackend;
     }
 
-    // Actualizar tabla
     function updateViewFromList(transformedList) {
         const tbody = $('#blueprints-table tbody');
         tbody.empty();
@@ -23,7 +18,6 @@ const BlueprintsModule = (function() {
             row.append(`<td>${bp.name}</td>`);
             row.append(`<td>${bp.points}</td>`);
 
-            // Botón Dibujar
             const btn = $('<button class="btn btn-success btn-sm">Dibujar</button>');
             btn.click(() => drawBlueprint(selectedAuthor, bp.name));
             row.append($('<td></td>').append(btn));
@@ -35,61 +29,73 @@ const BlueprintsModule = (function() {
         $('#total-points').text(totalPoints);
     }
 
-    // Dibujar plano
+    // 🔹 Dibujar plano en canvas
     function drawBlueprint(author, planName) {
+        if (!Backend.getBlueprintsByAuthor) return;
+
         Backend.getBlueprintsByAuthor(author, function(list) {
             const blueprint = list.find(bp => bp.name === planName);
             if (!blueprint || !blueprint.points) return;
 
-            currentBlueprint = blueprint;
+            currentBlueprint = blueprint; // 🔹 Guardamos el plano activo
 
-            // Mostrar nombre del plano actual
-            $('#current-plan').remove();
-            $('<div id="current-plan" class="mb-3"><strong>Plano dibujado: </strong>' + blueprint.name + '</div>')
-                .insertBefore('#blueprints-canvas');
-
-            const canvas = document.getElementById('blueprints-canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.beginPath();
-            const points = blueprint.points;
-            ctx.moveTo(points[0].x, points[0].y);
-            for (let i = 1; i < points.length; i++) {
-                ctx.lineTo(points[i].x, points[i].y);
+            let planField = $('#current-plan');
+            if (planField.length === 0) {
+                $('<div class="mb-3"><strong>Plano dibujado: </strong><span id="current-plan"></span></div>')
+                    .insertBefore('#blueprints-canvas');
+                planField = $('#current-plan');
             }
-            ctx.strokeStyle = 'blue';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            planField.text(blueprint.name);
+
+            repaintCanvas();
         });
     }
 
-    // Capturar clics en el canvas
+    // 🔹 Repinta el canvas con los puntos actuales
+    function repaintCanvas() {
+        if (!currentBlueprint) return;
+
+        const canvas = document.getElementById('blueprints-canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const points = currentBlueprint.points;
+        if (points.length === 0) return;
+
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    // 🔹 Inicializa eventos del canvas
     function initCanvasEvents() {
         const canvas = document.getElementById('blueprints-canvas');
         const ctx = canvas.getContext('2d');
 
         canvas.addEventListener('pointerdown', function(event) {
+            if (!currentBlueprint) return; // si no hay plano, no hacer nada
+
             const rect = canvas.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
 
-            console.log(`Click detectado en: (${x.toFixed(1)}, ${y.toFixed(1)})`);
+            // agregar punto al plano actual en memoria
+            currentBlueprint.points.push({ x, y });
 
-            // Dibujar punto azul donde se hizo clic
-            ctx.fillStyle = 'blue';
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.fill();
+            // redibujar plano actualizado
+            repaintCanvas();
         });
     }
 
-    // Cambiar autor
     function setAuthor(author) {
         selectedAuthor = author.trim();
     }
 
-    // Actualizar planos por autor
     function updateBlueprintsByAuthor(author) {
         selectedAuthor = author.trim();
         Backend.getBlueprintsByAuthor(selectedAuthor, function(list) {
@@ -112,6 +118,6 @@ const BlueprintsModule = (function() {
         drawBlueprint,
         getBlueprints,
         setBackend,
-        initCanvasEvents
+        initCanvasEvents // 🔹 nuevo: inicialización pública de eventos
     };
 })();
